@@ -10,7 +10,7 @@ README Contents:
 4. Included Files
 5. References
 
-Copyright (C) 2017  Rishit Sheth, 1/21/17
+Copyright (C) 2017  Rishit Sheth, 2/20/17
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -59,6 +59,12 @@ parameters. The training functions return a structure describing the trained
 model with fields equivalent to the params structure of the (model,data,params)
 triplet.
 
+The function compute_expectations_vgai utilizes some vgai toolbox functionality 
+to compute expectations of the likelihood function wrt/ a univariate Gaussian. 
+It is not necessary to use the vgai toolbox to compute these expectations. For 
+instance, these expectations can be computed with the GPML toolbox. See the 
+definition of the expec_func field in the model structure for interface.
+
 The function lgm_predict takes the triplet (model,data,params) as arguments 
 along with the Npred input locations to be predicted at and returns a structure 
 containing the latent mean and variance and output mean and variance 
@@ -68,10 +74,14 @@ predictions:
     x:              [Npred x D]             D-dim. input locations to predict at
                                             (Npred total locations)
     lp:             [Npred x 1]             predictive log probabilities at x
-    f_mean:         [Npred x 1]             posterior GP mean evaluated at x
-    f_var:          [Npred x 1]             posterior GP variance evaluated at x
+    f_mean:         [Npred x 1]             posterior latent mean evaluated at x
+    f_var:          [Npred x 1]             posterior latent variance evaluated 
+                                            at x
     y_mean:         [Npred x 1]             output mean evaluated at x
     y_var:          [Npred x 1]             output variance evaluated at x
+
+Note, prediction uses the GPML toolbox whereas training currently uses the vgai 
+toolbox. 
 
 The triplet of Matlab structures (model,data,params) is used throughout the 
 code. These structures are:
@@ -118,6 +128,10 @@ model:
                                             representing rho
                                             2 - Ntrain x 1 vector of doubles
                                             representing lambda
+    logl_func:      [cell of fhandles]      see compute_expectations_vgai.m
+    logl_int:       string                  see compute_expectations_vgai.m
+    likl_func:      [cell of fhandles]      GPML-compatible likelihood function
+                                            to compute predictions
 
 data:
     xt:             [Ntrain x Dinput]       Dinput-dim. input locations 
@@ -129,11 +143,6 @@ params:
         m           [D x 1]                 Variational mean
         C           [D x D]                 Cholesky factor of variational 
                                             covariance
-    hyp:            [structure]             Hyperparameters
-        mean
-        cov
-        lik
-
 *** 3. Generalizing ***
 
 There are three instances of the extended latent Gaussian model (eLGM) provided

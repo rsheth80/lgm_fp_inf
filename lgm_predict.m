@@ -5,8 +5,8 @@ function datar = lgm_predict(model,data,params,xs,ys)
 % xs is Ntest x D test locations
 % predictions is a structure:
 %   x:          [Ntest x D]     equal to xs
-%   f_mean:     [Ntest x 1]     posterior GP mean evaluated at xs
-%   f_var:      [Ntest x 1]     posterior GP variance evaluated at xs
+%   f_mean:     [Ntest x 1]     posterior latent mean evaluated at xs
+%   f_var:      [Ntest x 1]     posterior latent variance evaluated at xs
 %   y_mean:     [Ntest x 1]     output mean evaluated at xs
 %   y_var:      [Ntest x 1]     output variance evaluated at xs
 %   y_mode:     [Ntest x 1]     output mode evaluated at xs (for ordinal, 

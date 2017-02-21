@@ -1,0 +1,186 @@
+This Matlab code implements variational inference in the extended latent
+Gaussian model (LGM) family as described in the paper "A fixed point operator 
+for inference in variational Bayesian latent Gaussian models".
+
+README Contents:
+
+1. Required Packages
+2. Overview
+3. Generalizing
+4. Included Files
+5. References
+
+Copyright (C) 2017  Rishit Sheth, 1/21/17
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+*** 1. Required Packages ***
+
+    minFunc         http://www.cs.ubc.ca/~schmidtm/Software/minFunc.html
+    GPML toolbox    http://www.gaussianprocess.org/gpml/code/matlab/doc/
+
+Tested with GPML toolbox v3.4 and minFunc_2012 on Matlab 2013a.
+
+The GPML toolbox-compatible likelihood function likCumLog is included for use 
+with ordinal regression.
+
+The use of 'compute_expectations_vgai' (see below) requires the vgai package:
+
+    vgai            http://mloss.org/software/view/308/
+
+Bugs were corrected and slight modifications were made in the following vgai 
+files and supplied as part of this package in util/
+
+exp_log_laplace.m
+exp_log_poisson_loglink.m
+log_siglogit1.m
+
+*** 2. Overview ***
+
+The function lgm_fpi_train performs variational training of an extended latent 
+Gaussian model (eLGM) using Newton descent in the variational mean and fixed
+point updates in the variational covariance. One step in each parameter is taken
+per iteration. The function lgm_fpb_train is similar but attempts to fully 
+optimize the variational mean and covariance during each iteration. The inputs 
+to lgm_fpi_train (and lgm_fpb_train) are the (model,data,params) triplet 
+(described below) and an optional data structure describing optimization-related
+parameters. The training functions return a structure describing the trained 
+model with fields equivalent to the params structure of the (model,data,params)
+triplet.
+
+The function lgm_predict takes the triplet (model,data,params) as arguments 
+along with the Npred input locations to be predicted at and returns a structure 
+containing the latent mean and variance and output mean and variance 
+evaluated at the input locations:
+
+predictions:
+    x:              [Npred x D]             D-dim. input locations to predict at
+                                            (Npred total locations)
+    lp:             [Npred x 1]             predictive log probabilities at x
+    f_mean:         [Npred x 1]             posterior GP mean evaluated at x
+    f_var:          [Npred x 1]             posterior GP variance evaluated at x
+    y_mean:         [Npred x 1]             output mean evaluated at x
+    y_var:          [Npred x 1]             output variance evaluated at x
+
+The triplet of Matlab structures (model,data,params) is used throughout the 
+code. These structures are:
+
+model:
+    D:              [double]                Latent dimensionality
+    prior_func:     [cell of fhandles]      Should accept as arguments the 
+                                            following:
+                                            a) model structure
+                                            b) data structure
+                                            c) params structure
+                                            Should return the following:
+                                            a) D x 1 vector of doubles
+                                            representing prior mean
+                                            b) D x D matrix of doubles
+                                            representing Cholesky factor of
+                                            prior covariance
+    marg_func:      [cell of fhandles]      Should accept as arguments the 
+                                            following:
+                                            a) model structure
+                                            b) data structure
+                                            c) params structure
+                                            Should return the following:
+                                            a) Ntrain x 1 vector of doubles
+                                            representing marginal means
+                                            b) Ntrain x 1 vector of doubles
+                                            representing marginal variances
+    expec_func:     [cell of fhandles]      Should accept as arguments the 
+                                            following:
+                                            a) an integer from [0, 1, 2]
+                                            representing order
+                                            b) model structure
+                                            c) data structure
+                                            d) params structure
+                                            e) Ntrain x 1 vector of doubles
+                                            representing marginal means
+                                            f) Ntrain x 1 vector of doubles
+                                            representing marginal variances
+                                            Should return the following based on
+                                            value of order:
+                                            0 - scalar double representing sum
+                                            of expectations term of vlb
+                                            1 - Ntrain x 1 vector of doubles
+                                            representing rho
+                                            2 - Ntrain x 1 vector of doubles
+                                            representing lambda
+
+data:
+    xt:             [Ntrain x Dinput]       Dinput-dim. input locations 
+                                            (Ntrain total locations)
+    yt:             [Ntrain x 1]            Ntrain outputs
+
+params:
+    var:            [structure]
+        m           [D x 1]                 Variational mean
+        C           [D x D]                 Cholesky factor of variational 
+                                            covariance
+    hyp:            [structure]             Hyperparameters
+        mean
+        cov
+        lik
+
+*** 3. Generalizing ***
+
+There are three instances of the extended latent Gaussian model (eLGM) provided
+here:
+
+    1. Generalized linear model (GLM)
+    2. Generalized Gaussian process model (GGPM)
+    3. Sparse generalized Gaussian process model (SGGPM)
+
+Creating an instance requires defining the two functions prior_func and 
+marg_func for the model instantiation. 
+
+*** 4. Included Files ***
+
+calc_vlb.m
+compute_expectations_vgai.m
+data/glm_test_data_logistic_pima.mat
+data/glm_test_data_ordinal_stocks.mat
+data/glm_test_data_normal_cahousing.mat
+data/glm_test_data_poisson_ucsdpeds.mat
+data/ggpm_test_data_logistic_pima.mat
+data/sggpm_test_data_ordinal_stocks.mat
+data/sggpm_test_data_laplace_cpusmall.mat
+fobj_m.m
+fp_update_C.m
+fp_update_m.m
+ggpm_compute_marginals.m
+ggpm_compute_prior.m
+glm_compute_marginals.m
+glm_compute_prior.m
+lgm_fpb_train.m
+lgm_fpi_train.m
+lgm_predict.m
+LICENSE
+README
+sggpm_compute_marginals.m
+sggpm_compute_prior.m
+startup.m
+util/trilv_to_full.m
+util/full_to_trilv.m
+util/log_ordinal.m
+util/log_siglogit1.m
+util/exp_log_laplace.m
+util/likCumLog.m
+util/exp_log_poisson_loglink.m
+
+*** 5. References ***
+
+Sheth, R., Khardon R., A fixed-point operator for inference in variational 
+Bayesian latent Gaussian models, AISTATS 2016.

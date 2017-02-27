@@ -130,8 +130,9 @@ model:
                                             representing lambda
     logl_func:      [cell of fhandles]      see compute_expectations_vgai.m
     logl_int:       string                  see compute_expectations_vgai.m
-    likl_func:      [cell of fhandles]      GPML-compatible likelihood function
-                                            to compute predictions
+    likl_func:      [cell of fhandles]      (optional) GPML-compatible 
+                                            likelihood function to compute 
+                                            predictions
 
 data:
     xt:             [Ntrain x Dinput]       Dinput-dim. input locations 
@@ -143,6 +144,9 @@ params:
         m           [D x 1]                 Variational mean
         C           [D x D]                 Cholesky factor of variational 
                                             covariance
+    hyp:            [structure of doubles]  (model dependent) see GPML toolbox 
+                                            documentation
+
 *** 3. Generalizing ***
 
 There are three instances of the extended latent Gaussian model (eLGM) provided

@@ -51,19 +51,15 @@ switch(func2str(model.lik_func{1}))
 case 'likCumLog'
     y_pred_mode = zeros(size(xs,1),1);
     Lc = model.lik_func{2};
-    lp = zeros(size(xs,1),1);
     lpi = zeros(1,Lc);
     for i = 1:size(xs,1)
         lpi = feval(model.lik_func{:},params.hyp.lik,1:Lc,marg_m(i),marg_v(i));
-        [lp(i),y_pred_mode(i)] = max(lpi);
+        [~,y_pred_mode(i)] = max(lpi);
     end;
 case 'likLogistic'
     n = length(y_pred_mean);
     y_pred_mode = -1*ones(n,1);
-    if(nargin<5)
-        lp = feval(model.lik_func{:},params.hyp.lik,zeros(n,1),marg_m,marg_v);
-    end;
-    y_pred_mode(lp>log(0.5)) = 1;
+    y_pred_mode(marg_m>0) = 1;
 otherwise
     y_mode_flag = false;
 end;
@@ -76,6 +72,8 @@ datar.y_mean=y_pred_mean;
 datar.y_var=y_pred_var;
 if(y_mode_flag)
     datar.y_mode = y_pred_mode;
+else
+    datar.y_mode = floor(y_pred_mean);
 end;
 if(nargin>4)
     datar.lp = lp;
